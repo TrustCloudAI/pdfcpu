@@ -269,11 +269,17 @@ func validateFileSpecDictEntriesEFAndRF(xRefTable *model.XRefTable, efDict, rfDi
 
 func validateFileSpecDictType(xRefTable *model.XRefTable, d types.Dict) error {
 
-	if d.Type() == nil || (*d.Type() != "Filespec" && (xRefTable.ValidationMode == model.ValidationRelaxed && *d.Type() != "F")) {
+	if d.Type() == nil || !validFileSpecDictType(xRefTable, *d.Type()) {
 		return errors.New("pdfcpu: validateFileSpecDictType: missing type: FileSpec")
 	}
 
 	return nil
+}
+
+func validFileSpecDictType(xRefTable *model.XRefTable, s string) bool {
+	// Relaxed: accept "F" and "FileSpec".
+	// "FileSpec" is written by C2PA Content Credentials signers (eg. ChatGPT), see TCDEV-11237.
+	return s == "Filespec" || (xRefTable.ValidationMode == model.ValidationRelaxed && (s == "F" || s == "FileSpec"))
 }
 
 func requiredF(dosFound, macFound, unixFound bool) bool {
@@ -296,7 +302,7 @@ func validateFileSpecDictEFAndRF(xRefTable *model.XRefTable, d types.Dict, dictN
 
 	// Type, required if EF present, name
 	validate := func(s string) bool {
-		return s == "Filespec" || (xRefTable.ValidationMode == model.ValidationRelaxed && s == "F")
+		return validFileSpecDictType(xRefTable, s)
 	}
 	_, err = validateNameEntry(xRefTable, d, dictName, "Type", efDict != nil, model.V10, validate)
 	if err != nil {
