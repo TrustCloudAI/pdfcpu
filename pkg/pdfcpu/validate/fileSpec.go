@@ -267,19 +267,19 @@ func validateFileSpecDictEntriesEFAndRF(xRefTable *model.XRefTable, efDict, rfDi
 	return nil
 }
 
-func validateFileSpecDictType(xRefTable *model.XRefTable, d types.Dict) error {
-
-	if d.Type() == nil || (*d.Type() != "Filespec" && (xRefTable.ValidationMode == model.ValidationRelaxed && !validFileSpec(*d.Type()))) {
-		return errors.New("pdfcpu: validateFileSpecDictType: missing type: FileSpec")
-	}
-
-	return nil
-}
-
 func validFileSpec(s string) bool {
 	// Relaxed: accept "F" and "FileSpec".
 	// "FileSpec" is written by C2PA Content Credentials signers (eg. ChatGPT), see TCDEV-11237.
 	return (s == "F" || s == "FileSpec")
+}
+
+func validateFileSpecDictType(xRefTable *model.XRefTable, d types.Dict) error {
+
+	if d.Type() == nil || (*d.Type() != "Filespec" && (xRefTable.ValidationMode != model.ValidationRelaxed || !validFileSpec(*d.Type()))) {
+		return errors.New("pdfcpu: validateFileSpecDictType: missing type: FileSpec")
+	}
+
+	return nil
 }
 
 func requiredF(dosFound, macFound, unixFound bool) bool {
