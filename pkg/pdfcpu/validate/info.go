@@ -205,6 +205,10 @@ func validateDocumentInfoObject(xRefTable *model.XRefTable) error {
 
 	hasModDate, err := validateDocumentInfoDict(xRefTable, *xRefTable.Info)
 	if err != nil {
+		if xRefTable.ValidationMode == model.ValidationRelaxed {
+			log.Validate.Println("validateDocumentInfoObject: Info dictionary is not valid, ignoring it")
+			return nil
+		}
 		return err
 	}
 

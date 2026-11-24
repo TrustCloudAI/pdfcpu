@@ -139,7 +139,20 @@ func ensureInfoDict(ctx *model.Context) error {
 
 	d, err := ctx.DereferenceDict(*ctx.Info)
 	if err != nil || d == nil {
-		return err
+
+		d := types.NewDict()
+		d.InsertString("Producer", v)
+		d.InsertString("CreationDate", now)
+		d.InsertString("ModDate", now)
+
+		ir, err := ctx.IndRefForNewObject(d)
+		if err != nil {
+			return err
+		}
+
+		ctx.Info = ir
+
+		return nil
 	}
 
 	if err = handleInfoDict(ctx, d); err != nil {
